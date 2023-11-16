@@ -1,15 +1,62 @@
-iPhone App Store Analysis using SQL
-Overview: For over a decade, the App Store has been a trusted platform for discovering and downloading apps. This analysis aims to provide data-driven insights for aspiring app developers who seek answers to critical questions. By examining the iPhone App Store data, my aim is to help developers understand the app ecosystem, make informed decisions, and maximize their app's success.
-Problem Statement:
-Aspiring iPhone app creators often find it challenging to decide which types of apps to make, how much to charge for them, and how to get good reviews from users. They also have trouble writing descriptions that make people interested in their apps and understanding how many similar apps are out there. Finding solutions to these issues would make it easier for app developers to create successful apps.
-About the dataset:
-The dataset used for this project can be found here:
-Exploratory Data Analysis (EDA):
- EDA is the initial step to comprehend the dataset's structure and identify potential issues. This includes detecting missing or inconsistent data and outliers, ensuring a clean dataset for further analysis.
-Key Insights and Recommendations:
-•	Paid apps tend to receive better ratings, indicating that users are willing to pay for quality. Developers should consider the value their app offers and set an appropriate price to maximize revenue and user satisfaction.
-•	Quality apps in high-demand categories have the potential for higher ratings and market penetration. Developers should focus on creating apps that address user needs and provide exceptional value.
-•	Apps with longer descriptions tend to receive higher ratings. A well-crafted app description can set clear expectations and increase user satisfaction. Developers should pay attention to how they present their app's features and capabilities.
-•	Games and Entertainment categories have a high volume of apps, suggesting intense competition. Developers should be prepared for competition in these sectors and find unique value propositions.
-Conclusion:
-This project aims to equip aspiring app developers with the insights needed to navigate the complex world of the iPhone App Store successfully. By understanding user preferences, pricing strategies, and the competitive landscape, developers can increase their chances of building apps that resonate with users and achieve higher ratings and market success. 
+create table applestore_description_combined AS
+select * from appleStore_description1
+union all 
+select * from appleStore_description2
+union all 
+select * from appleStore_description3
+union all 
+select * from appleStore_description4
+--  check the no of unique apps in both the tables
+select count(DISTINCT ID) AS UniqueAppIDs
+from AppleStore
+select count(DISTINCT ID) AS UniqueAppIDs
+from applestore_description_combined
+-- check for missing values in some of the key fields of the table
+select count(*) as MissingValues
+from AppleStore
+where ID is null or user_rating is null or track_name is null or prime_genre is null
+select count(*) as MissingValues
+from applestore_description_combined
+where ID is null or track_name is null or app_desc is NULL
+-- no data quality issues in both the tables 
+-- find out the no of apps per genre 
+select prime_genre, count(*) as No_of_apps
+FROM AppleStore
+GROUP BY prime_genre
+ORDER BY No_of_apps DESC 
+--Games and Enterteinment genres are clearly leading with a huge no of apps
+-- Get an overview of the apps ratings
+select min(user_rating) as MinRating,
+       max(user_rating) as MaxRating,
+       avg(user_rating) as AvgRating
+From AppleStore
+--Determine whether paid apps have higher rating than free apps
+select 
+case 
+   When price> 0 then 'Paid'
+   Else "Free"
+   end as app_type,
+   avg(user_rating) as Avg_rating
+from AppleStore
+group by app_type
+-- Rating of Paid apps is slightly higher compared to the free apps
+
+-- check if apps with more supported languages have higher ratings
+select 
+case 
+   When lang_num < 10 then '<10 languages'
+   When lang_num BETWEEN 10 and 30 then '10-30 languages'
+   Else ">30 languages"
+   end as language_bucket,
+   avg(user_rating) as Avg_rating
+from AppleStore
+group by language_bucket
+order by  Avg_rating desc
+-- check genres with low ratings
+select 
+prime_genre,
+avg(user_rating) as Avg_rating
+from AppleStore
+group by prime_genre
+order by Avg_rating asc
+LIMIT 10
